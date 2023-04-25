@@ -39,4 +39,4 @@ Windows Presentation Foundation
 	
 6일차 영화검색앱 중간
 <img
-src="" width="700"/>
+src="https://raw.githubusercontent.com/JuHyunLee99/WPF/main/Images/MovieFinder1.png" width="700"/>
