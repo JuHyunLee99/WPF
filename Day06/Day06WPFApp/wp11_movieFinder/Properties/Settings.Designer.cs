@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace wf10_employeesApp.Properties
+namespace wp11_movieFinder.Properties
 {
 
 
