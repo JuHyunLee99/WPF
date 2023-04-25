@@ -37,6 +37,6 @@ Windows Presentation Foundation
 		- MahApps.Metro.IconPacks
 		- Newtonsoft.Json
 	
-6일차 영화검색앱 중간
+6일차 영화검색앱 중간  
 <img
 src="https://raw.githubusercontent.com/JuHyunLee99/WPF/main/Images/MovieFinder1.png" width="700"/>
