@@ -1,6 +1,6 @@
 ﻿namespace wp11_movieFinder.Models
 {
-    public class Movieitem
+    public class MovieItem
     {
         public bool Adult { get; set; }
         public int Id { get; set; } // key

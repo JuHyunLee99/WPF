@@ -49,6 +49,15 @@ src="https://raw.githubusercontent.com/JuHyunLee99/WPF/main/Images/MovieFinder1.
 		- Youtube OpenAPI
 		- DB 데이터바인딩
 
-7일차 영화검색앱 중간  
+## 8일차
+- WPF 응용
+	- 영화검색앱 완료
+		- DB  데이터바인딩(MYSQL)
+	- 미세먼지확인 앱 개발
+		- MahApps.Metro
+		- 데이터포털 OpenAPI
+		- DB 데이터바인딩 (MySQL)
+		
+영화검색앱
 <img
 src="https://github.com/JuHyunLee99/WPF/blob/main/Images/MovieFinder2.gif" width="700"/>

@@ -1,4 +1,5 @@
 ﻿using MahApps.Metro.Controls;
+using MySql.Data.MySqlClient;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -49,7 +51,7 @@ namespace wp11_movieFinder
                 await Commons.ShowMessageAsync("검색", "검색할 영화명을 입력하세요.");
                 return;
             }
-           
+
 
             //if (TxtMovieName.Text.Length <= 2)
             //{
@@ -73,7 +75,7 @@ namespace wp11_movieFinder
         // 텍스트박스에서 키를 입력할대 엔터를 누르면 검색 시작
         private void TxtMovieName_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Key == Key.Enter)
+            if (e.Key == Key.Enter)
             {
                 BtnSearchMovie_Click(sender, e);
             }
@@ -123,14 +125,14 @@ namespace wp11_movieFinder
             // items를 데이터그리드에 표시
             var json_array = items as JArray;
 
-            var movieItems = new List<Movieitem>(); // json에서 넘어온 배열을 담을 장소
-            foreach (var val in json_array) 
+            var movieItems = new List<MovieItem>(); // json에서 넘어온 배열을 담을 장소
+            foreach (var val in json_array)
             {
-                var MovieItem = new Movieitem()
+                var MovieItem = new MovieItem()
                 {
                     Adult = Convert.ToBoolean(val["adult"]),
                     Id = Convert.ToInt32(val["id"]),
-                    Original_Language= Convert.ToString(val["original_language"]),
+                    Original_Language = Convert.ToString(val["original_language"]),
                     Original_Title = Convert.ToString(val["original_title"]),
                     Overview = Convert.ToString(val["overview"]),
                     Popularity = Convert.ToDouble(val["popularity"]),
@@ -140,9 +142,11 @@ namespace wp11_movieFinder
                     Vote_Average = Convert.ToDouble(val["vote_average"])
                 };
                 movieItems.Add(MovieItem);
-            }    
+            }
 
             this.DataContext = movieItems;
+            isFavorite = false; // 얘는 즐켜찾기 아닌야
+            StsResult.Content = $"OpenAPI {movieItems.Count} 건 조회완료";
         }
 
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
@@ -155,16 +159,28 @@ namespace wp11_movieFinder
         {
             try
             {
-                var movie = GrdResult.SelectedItem as Movieitem;
-                Debug.WriteLine(movie.Poster_Path);
-                if (string.IsNullOrEmpty(movie.Poster_Path))    // 포스터 이지가 없으면 No_Picture
+                string posterPath = String.Empty;
+
+                if (GrdResult.SelectedItem is MovieItem)    // openAPI로 검색된 영화의 포스터 보기
+                {
+                    var movie = GrdResult.SelectedItem as MovieItem;
+                    posterPath = movie.Poster_Path;
+                }
+                else if (GrdResult.SelectedItem is FavoriteMovieItem)   // 즐겨찾기 DB에서 가져온 영화 포스터
+                {
+                    var movie = GrdResult.SelectedItem as FavoriteMovieItem;
+                    posterPath = movie.Poster_Path;
+                }
+
+                Debug.WriteLine(posterPath);
+                if (string.IsNullOrEmpty(posterPath))    // 포스터 이지가 없으면 No_Picture
                 {
                     ImgPoster.Source = new BitmapImage(new Uri("/No_Picture.png", UriKind.RelativeOrAbsolute));
                 }
                 else
                 {
                     var base_url = "https://image.tmdb.org/t/p/w300_and_h450_bestv2";
-                    ImgPoster.Source = new BitmapImage(new Uri($"{base_url}{movie.Poster_Path}", UriKind.RelativeOrAbsolute));
+                    ImgPoster.Source = new BitmapImage(new Uri($"{base_url}{posterPath}", UriKind.RelativeOrAbsolute));
                 }
             }
             catch
@@ -175,25 +191,34 @@ namespace wp11_movieFinder
         // 영화 예고편 유튜브 보기
         private async void BtnWatchTrailer_Click(object sender, RoutedEventArgs e)
         {
-            if(GrdResult.SelectedItems.Count ==0)
+            if (GrdResult.SelectedItems.Count == 0)
             {
                 await Commons.ShowMessageAsync("유튜브", "영화를 선택하세요.");
                 return;
             }
 
-            if(GrdResult.SelectedItems.Count > 1) 
+            if (GrdResult.SelectedItems.Count > 1)
             {
                 await Commons.ShowMessageAsync("유튜브", "영화를 하나만 선택하세요.");
                 return;
             }
 
             string movieName = string.Empty;
-
-            // movieName = (GrdResult.SelectedItem as Movieitem).Title;
-            var movie = GrdResult.SelectedItem as Movieitem;
+            if (GrdResult.SelectedItem is MovieItem)
+            {
+                var movie = GrdResult.SelectedItem as MovieItem;
+                movieName = movie.Title;
+            }
+            else if (GrdResult.SelectedItem is FavoriteMovieItem)
+            {
+                var movie = GrdResult.SelectedItem as FavoriteMovieItem;
+                movieName = movie.Title;
+            }
+            // movieName = (GrdResult.SelectedItem as MovieItem).Title;
+            // var movie = GrdResult.SelectedItem as MovieItem;
             // await Commons.ShowMessageAsync("유튜브", $"예고편 볼 영화 {movieName}");
             //var trailerWindow = new TrailerWindow(movieName);
-            var trailerWindow = new TrailerWindow(movie);
+            var trailerWindow = new TrailerWindow(movieName);
             trailerWindow.Owner = this; // TrailerWindow의 부모는 MainWindow
             trailerWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;    // 부모창의 정중앙에 위치
             // trailerWindow.Show();   //모달리스로 창을 열면 부모창을 손댈 수 있기 때문에 안됨
@@ -203,7 +228,7 @@ namespace wp11_movieFinder
         // 검색결과 중에서 좋아하는 영화 저장
         private async void BtnAddFavorite_Click(object sender, RoutedEventArgs e)
         {
-            if(GrdResult.SelectedItems.Count==0)
+            if (GrdResult.SelectedItems.Count == 0)
             {
                 await Commons.ShowMessageAsync("오류", "즐겨찾기에 추가할 영화를 선택하세요(복수선택 가능)");
                 return;
@@ -215,8 +240,10 @@ namespace wp11_movieFinder
                 return;
             }
 
+
+            /* 리스트 안만들어도됨.
             List<FavoriteMovieItem> list = new List<FavoriteMovieItem>();
-            foreach(Movieitem item in GrdResult.SelectedItems)
+            foreach(MovieItem item in GrdResult.SelectedItems)
             {
                 var favoriteMovie = new FavoriteMovieItem()
                 {
@@ -234,14 +261,89 @@ namespace wp11_movieFinder
                 };
                 list.Add(favoriteMovie);
             }
-
-            // 동작하는지 확인
-            //await Commons.ShowMessageAsync("저장할 데이터수", list.Count.ToString());
-            //return;
-
+            */
+            #region<MySQL 연결 테스트>
+            /*
             try
             {
-                // DB 연결 확인
+                // MySQL DB 연결 확인
+                using (MySqlConnection conn = new MySqlConnection(Commons.myConnString))
+                {
+                    if (conn.State == ConnectionState.Closed) conn.Open();
+
+                    // 데이터 입력
+                    var query = @"INSERT INTO FavoriteMovieItem
+                                   ( Id
+                                   , Title
+                                   , Original_Title
+                                   , Release_Date
+                                   , Original_Language
+                                   , Adult
+                                   , Popularity
+                                   , Vote_Average
+                                   , Poster_Path
+                                   , Overview
+                                   , Reg_Date )
+                             VALUES
+                                   ( @Id
+                                   , @Title
+                                   , @Original_Title
+                                   , @Release_Date
+                                   , @Original_Language
+                                   , @Adult
+                                   , @Popularity
+                                   , @Vote_Average
+                                   , @Poster_Path
+                                   , @Overview
+                                   , @Reg_Date )";
+
+                    var insRes = 0;
+                    foreach (FavoriteMovieItem item in list)
+                    {
+                        MySqlCommand cmd = new MySqlCommand(query, conn);
+                        cmd.Parameters.AddWithValue("@Id", item.Id);
+                        cmd.Parameters.AddWithValue("@Title", item.Title);
+                        cmd.Parameters.AddWithValue("@Original_Title", item.Original_Title);
+                        cmd.Parameters.AddWithValue("@Release_Date", item.Release_Date);
+                        cmd.Parameters.AddWithValue("@Original_Language", item.Original_Language);
+                        cmd.Parameters.AddWithValue("@Adult", item.Adult);
+                        cmd.Parameters.AddWithValue("@Popularity", item.Popularity);
+                        cmd.Parameters.AddWithValue("@Vote_Average", item.Vote_Average);
+                        cmd.Parameters.AddWithValue("@Poster_Path", item.Poster_Path);
+                        cmd.Parameters.AddWithValue("@Overview", item.Overview);
+                        cmd.Parameters.AddWithValue("@Reg_Date", item.Reg_Date);
+
+                        insRes += cmd.ExecuteNonQuery();
+                    }
+                    //var result = cmd.ExecuteScalar();
+                    //await Commons.ShowMessageAsync("데이터 갯수", result.ToString());
+                    // MessageBox.Show(insRes.ToString());
+
+                    if (list.Count == insRes)
+                    {
+                        await Commons.ShowMessageAsync("저장", "DB저장 성공");
+                    }
+                    else
+                    {
+                        await Commons.ShowMessageAsync("저장", "DB저장오류 관리자에게 문의하세요");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await Commons.ShowMessageAsync("오류", $"DB저장 오류{ex.Message}");
+            }
+
+            동작하는지 확인
+            await Commons.ShowMessageAsync("저장할 데이터수", list.Count.ToString());
+            return;
+            */
+            #endregion
+
+            #region<SQL Server 연결>
+            try
+            {
+                // SQL Server DB 연결 확인
                 using (SqlConnection conn = new SqlConnection(Commons.connString))
                 {
                     if (conn.State == ConnectionState.Closed) conn.Open();
@@ -273,9 +375,9 @@ namespace wp11_movieFinder
                                    , @Reg_Date )";
 
                     var insRes = 0;
-                    foreach(FavoriteMovieItem item in list)
+                    foreach (MovieItem item in GrdResult.SelectedItems)  // openAPI로 조회된 결과
                     {
-                        SqlCommand cmd = new SqlCommand(query, conn);   
+                        SqlCommand cmd = new SqlCommand(query, conn);
                         cmd.Parameters.AddWithValue("@Id", item.Id);
                         cmd.Parameters.AddWithValue("@Title", item.Title);
                         cmd.Parameters.AddWithValue("@Original_Title", item.Original_Title);
@@ -286,7 +388,7 @@ namespace wp11_movieFinder
                         cmd.Parameters.AddWithValue("@Vote_Average", item.Vote_Average);
                         cmd.Parameters.AddWithValue("@Poster_Path", item.Poster_Path);
                         cmd.Parameters.AddWithValue("@Overview", item.Overview);
-                        cmd.Parameters.AddWithValue("@Reg_Date", item.Reg_Date);
+                        cmd.Parameters.AddWithValue("@Reg_Date", DateTime.Now);
 
                         insRes += cmd.ExecuteNonQuery();
                     }
@@ -294,9 +396,11 @@ namespace wp11_movieFinder
                     //await Commons.ShowMessageAsync("데이터 갯수", result.ToString());
                     // MessageBox.Show(insRes.ToString());
 
-                    if(list.Count == insRes)
+                    if (GrdResult.SelectedItems.Count == insRes)
                     {
                         await Commons.ShowMessageAsync("저장", "DB저장 성공");
+                        StsResult.Content = $"즐겨찾기 {insRes} 건 저장완료";
+
                     }
                     else
                     {
@@ -308,6 +412,119 @@ namespace wp11_movieFinder
             {
                 await Commons.ShowMessageAsync("오류", $"DB저장 오류{ex.Message}");
             }
+            #endregion
+        }
+
+        private async void BtnViewFavorite_Click(object sender, RoutedEventArgs e)
+        {
+            this.DataContext = null;
+            TxtMovieName.Text = string.Empty;
+
+            List<FavoriteMovieItem> list = new List<FavoriteMovieItem>();
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(Commons.connString))
+                {
+                    if (conn.State == ConnectionState.Closed) conn.Open();
+                    var query = @"SELECT Id
+                               , Title
+                               , Original_Title
+                               , Release_Date
+                               , Original_Language
+                               , Adult
+                               , Popularity
+                               , Vote_Average
+                               , Poster_Path
+                               , Overview
+                               , Reg_Date
+                            FROM FavoriteMovieItem
+                            ORDER BY Id ASC";
+                    var cmd = new SqlCommand(query, conn);
+                    var adapter = new SqlDataAdapter(cmd);
+                    var dSet = new DataSet();
+                    adapter.Fill(dSet, "FavoriteMovieItem");
+
+                    foreach (DataRow dr in dSet.Tables["FavoriteMovieItem"].Rows)
+                    {
+                        list.Add(new FavoriteMovieItem
+                        {
+                            Id = Convert.ToInt32(dr["Id"]),
+                            Title = Convert.ToString(dr["Title"]),
+                            Original_Title = Convert.ToString(dr["Original_Title"]),
+                            Release_Date = Convert.ToString(dr["Release_Date"]),
+                            Original_Language = Convert.ToString(dr["Original_Language"]),
+                            Adult = Convert.ToBoolean(dr["Adult"]),
+                            Popularity = Convert.ToDouble(dr["Popularity"]),
+                            Vote_Average = Convert.ToDouble(dr["Vote_Average"]),
+                            Poster_Path = Convert.ToString(dr["Poster_Path"]),
+                            Overview = Convert.ToString(dr["Overview"]),
+                            Reg_Date = Convert.ToDateTime(dr["Reg_Date"])
+                        });
+
+                    }
+                    this.DataContext = list;
+                    isFavorite = true;
+                    StsResult.Content = $"즐겨찾기 {list.Count} 건 조회완료";
+                }
+            }
+            catch (Exception ex)
+            {
+
+                await Commons.ShowMessageAsync("오류", $"DB조회 오휴 {ex.Message}");
+            }
+        }
+
+        private async void BtnDelFavorite_Click(object sender, RoutedEventArgs e)
+        {
+            if (isFavorite == false)
+            {
+                await Commons.ShowMessageAsync("오류", "즐겨찾기만 삭제하 수 있습니다.");
+                return;
+
+            }
+            if (GrdResult.SelectedItems.Count == 0)
+            {
+                await Commons.ShowMessageAsync("오류", "삭제할 영화를 선택하세요.");
+                return;
+            }
+
+            try // 삭제
+            {
+                using (SqlConnection conn = new SqlConnection(Commons.connString))
+                {
+                    if (conn.State == ConnectionState.Closed) conn.Open();
+
+                    var query = "DELETE FROM FavoriteMovieItem WHERE Id = @Id";
+                    var delRes = 0;
+
+                    foreach (FavoriteMovieItem item in GrdResult.SelectedItems)
+                    {
+                        SqlCommand cmd = new SqlCommand(query, conn);
+                        cmd.Parameters.AddWithValue("@Id", item.Id);
+
+                        delRes += cmd.ExecuteNonQuery();
+                    }
+
+                    if (delRes == GrdResult.SelectedItems.Count)
+                    {
+                        await Commons.ShowMessageAsync("성공", "DB삭제 성공!!");
+                        StsResult.Content = $"즐겨찾기 {delRes} 건 삭제 완료";   //  요건 화면에 안나옴
+
+                    }
+                    else
+                    {
+                        await Commons.ShowMessageAsync("삭제", "DB삭제 일부 성공!");  // 발생할 일이 거의 전무
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+                await Commons.ShowMessageAsync("오류", $"DB삭제 오류 {ex.Message}");
+            }
+
+            BtnViewFavorite_Click(sender, e); // 즐겨찾기 보기 이벤트핸들러르 한번 실행
+
         }
     }
 }

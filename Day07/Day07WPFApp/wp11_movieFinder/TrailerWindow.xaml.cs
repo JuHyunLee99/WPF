@@ -37,7 +37,7 @@ namespace wp11_movieFinder
             LblMovieName.Content = $"{movieName} 예고편";
         }
         // 부모에서 객체를 통채로 가져올 수도 있음
-        public TrailerWindow(Movieitem movie) :this()
+        public TrailerWindow(MovieItem movie) :this()
         {
             LblMovieName.Content = $"{movie.Title} 예고편";
         }
