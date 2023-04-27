@@ -58,6 +58,6 @@ src="https://raw.githubusercontent.com/JuHyunLee99/WPF/main/Images/MovieFinder1.
 		- 데이터포털 OpenAPI
 		- DB 데이터바인딩 (MySQL)
 		
-영화검색앱
+영화검색앱  
 <img
 src="https://github.com/JuHyunLee99/WPF/blob/main/Images/MovieFinder2.gif" width="700"/>
