@@ -8,7 +8,7 @@
         xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:local="clr-namespace:petFinder"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Loaded="MetroWindow_Loaded">
+        Title="MainWindow" Height="450" Width="850" Loaded="MetroWindow_Loaded">
 
     <mah:MetroWindow.IconTemplate>
         <DataTemplate>
@@ -25,26 +25,34 @@
         <Grid Grid.Row="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="1*"/>
-                <ColumnDefinition Width="1.5*"/>
+                <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
 
             <Label Grid.Column="0" Content="부산시 119 구조 반려동물 조회" FontSize="16" FontWeight="Bold" Margin="10"/>
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
                 <Button x:Name="BtnReq" Content="실시간 조회" Width="100" Margin="5" Style="{StaticResource MahApps.Styles.Button.Square.Accent}" Click="BtnReq_Click"/>
-                <ComboBox x:Name="CboPetType" Width="150" Margin="5" Style="{StaticResource MahApps.Styles.ComboBox}" 
-                      mah:TextBoxHelper.Watermark="반려동물 종류"
-                      mah:TextBoxHelper.UseFloatingWatermark="True"
-                      mah:TextBoxHelper.ClearTextButton="True" SelectionChanged="CboPetType_SelectionChanged"/>
-                <DatePicker x:Name="PickDate"  Width="150"    Margin="5" Style="{StaticResource MahApps.Styles.DatePicker}"
+                <DatePicker x:Name="PickDate"  Width="140"    Margin="5" Style="{StaticResource MahApps.Styles.DatePicker}"
                         mah:TextBoxHelper.Watermark="날짜 선택"
                         mah:TextBoxHelper.UseFloatingWatermark="True"
                         mah:TextBoxHelper.ClearTextButton="True" SelectedDateChanged="PickDate_SelectedDateChanged" />
+                <ComboBox x:Name="CboPrcs" Width="110" Margin="5" Style="{StaticResource MahApps.Styles.ComboBox}"
+                    mah:TextBoxHelper.Watermark="처리 현황"
+                      mah:TextBoxHelper.UseFloatingWatermark="True"
+                      mah:TextBoxHelper.ClearTextButton="True" SelectionChanged="CboPrcs_SelectionChanged"/>
+                
             </StackPanel>
         </Grid>
 
         <DataGrid Grid.Row="1" x:Name="GrdResult" Style="{StaticResource MahApps.Styles.DataGrid.Azure}" Margin="10"
-                  IsReadOnly="True" ItemsSource="{Binding}"/>
+                  IsReadOnly="True" ItemsSource="{Binding}" AutoGenerateColumns="False" MouseDoubleClick="GrdResult_MouseDoubleClick">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Index" Binding="{Binding Idx}"/>
+                <DataGridTextColumn Header="구조 내용" Binding="{Binding Sj}"/>
+                <DataGridTextColumn Header="처리 현황" Binding="{Binding Ty3Process}"/>
+                <DataGridTextColumn Header="작성 날짜" Binding="{Binding WritngDe}"/>
+            </DataGrid.Columns>
+        </DataGrid>
         <StatusBar Grid.Row="2">
             <StatusBarItem Content="부산시 실종 반려동물 찾기 앱"/>
             <Separator Style="{StaticResource MahApps.Styles.Separator.StatusBar}"/>

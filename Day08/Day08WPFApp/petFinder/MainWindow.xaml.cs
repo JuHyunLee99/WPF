@@ -40,7 +40,25 @@ namespace petFinder
         // 로드
         private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            SelectDB();
+            using (MySqlConnection conn = new MySqlConnection(Commons.myConnString))
+            {
+                conn.Open();
+                var query = @"SELECT DISTINCT ty3Process
+                                FROM animalinfo
+                                ORDER BY 1";
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                MySqlDataAdapter adapter = new MySqlDataAdapter(cmd);
+                DataSet ds = new DataSet();
+                adapter.Fill(ds);
+                List<string> processList = new List<string>();
+                foreach (DataRow row in ds.Tables[0].Rows)
+                {
+                    processList.Add(Convert.ToString(row[0]));
+                }
 
+                CboPrcs.ItemsSource = processList;
+            }
         }
 
         //  실시간 조회
@@ -49,7 +67,7 @@ namespace petFinder
             string openApiUrl = "http://apis.data.go.kr/6260000/BusanPetAnimalInfoService/getPetAnimalInfo"; // URL
             openApiUrl += "?ServiceKey=" + "Hp7RL4tCw0cXBMTYsWCTrydbix%2Fqtqe4%2Bu5yRNze4LKbniVQhVKmNWMk8IxYObz6%2FEB41Vo47zCdEVUVRfAvsA%3D%3D"; // Service Key
             openApiUrl += "&pageNo=1";
-            openApiUrl += "&numOfRows=450";
+            openApiUrl += "&numOfRows=50";
             openApiUrl += "&resultType=json";
 
             string result = string.Empty;
@@ -58,7 +76,7 @@ namespace petFinder
             WebResponse res = null;
             StreamReader reader = null;
 
-            // API REQ, RES
+            #region < API 요청, 응답 >
             try
             {
                 req = WebRequest.Create(openApiUrl);
@@ -73,15 +91,16 @@ namespace petFinder
 
                 await Commons.ShowMessageAsync("오류", $"OpenAPI조회 오류{ex.Message}");
             }
+            #endregion
 
+            #region < JSON 처리 >
             var jsonResult = JObject.Parse(result);
             // Debug.WriteLine(jsonResult);
 
             var resultCode = Convert.ToInt32(jsonResult["getPetAnimalInfo"]["header"]["resultCode"]);
 
-            var animalInfo = new List<AnimalInfo>();
-
-            // JSON 처리
+            var animalInfoDetail = new List<AminamlInfoDetail>();
+            
             try
             {
                 if( resultCode == 0 ) // API 결과 정상이면 처리
@@ -92,7 +111,7 @@ namespace petFinder
                     
                     foreach (var item in json_arry )
                     {
-                        animalInfo.Add(new AnimalInfo
+                        animalInfoDetail.Add(new AminamlInfoDetail
                         {
                             Sj = Convert.ToString(item["sj"]),
                             WritngDe = Convert.ToDateTime(item["writngDe"]),
@@ -115,14 +134,17 @@ namespace petFinder
                 await Commons.ShowMessageAsync("오류", $"JSON 처리 오류 {ex.Message}");
 
             }
+            #endregion
 
-            // DB 연결
+            #region < DB 연결 >
             try
             {
                 using(MySqlConnection conn = new MySqlConnection(Commons.myConnString))
                 {
                     if(conn.State == ConnectionState.Closed) conn.Open();
-                    var query = @"INSERT INTO animalinfo
+
+
+                    var query = @"INSERT IGNORE INTO animalinfo
                                          (Sj,
                                          WritngDe,
                                          Cn,
@@ -146,9 +168,11 @@ namespace petFinder
                                          @Ty3Ingye,
                                          @Ty3Insu,
                                          @Ty3Picture)";
+                                
 
                     var insRes = 0; // 신규 실종 반려동물 건수
-                    foreach(AnimalInfo item in animalInfo)
+                    animalInfoDetail.Reverse();
+                    foreach(AminamlInfoDetail item in animalInfoDetail)
                     {
                         MySqlCommand cmd = new MySqlCommand(query, conn);
                         cmd.Parameters.AddWithValue("@Sj", item.Sj);
@@ -172,14 +196,9 @@ namespace petFinder
             {
                 await Commons.ShowMessageAsync("오류", $"DB저장 오류! {ex.Message}");
             }
+            #endregion
 
-
-        }
-
-        // 반려동물 종류 필터
-        private void CboPetType_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-
+            SelectDB();
         }
 
         // 날짜 필터
@@ -188,5 +207,135 @@ namespace petFinder
 
         }
 
+        // 그리드 특정 ROW 더블클릭하면 새창에 반려동물 상세정보
+        private async void GrdResult_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var pet = GrdResult.SelectedItem as AminamlInfoDetail;
+            if (pet != null)
+            {
+            var detailWindow = new DetailWindow(pet);
+            detailWindow.Owner = this;
+            detailWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            detailWindow.ShowDialog();
+            }
+            else
+            {
+                await Commons.ShowMessageAsync("오류", "선택해주세요 ");
+
+            }
+        }
+        
+        // db select 기본
+        public void SelectDB()
+        {
+
+            #region < DB 조회>
+            using (MySqlConnection conn = new MySqlConnection(Commons.myConnString))
+            {
+                if (conn.State == ConnectionState.Closed) conn.Open();
+                var query = @"SELECT Idx,
+                                     Sj,
+                                     WritngDe,
+                                     Cn,
+                                     Ty3Date,
+                                     Ty3Place,
+                                     Ty3Kind,
+                                     Ty3Sex,
+                                     Ty3Process,
+                                     Ty3Ingye,
+                                     Ty3Insu,
+                                     Ty3Picture
+                                 FROM animalinfo
+                                 ORDER BY Idx DESC";
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                MySqlDataAdapter adapter = new MySqlDataAdapter(cmd);
+                DataSet ds = new DataSet();
+                var animalInfoDetail = new List<AminamlInfoDetail>();
+                adapter.Fill(ds, "animalInfoDetail");
+                foreach (DataRow row in ds.Tables["animalInfoDetail"].Rows)
+                {
+                    animalInfoDetail.Add(new AminamlInfoDetail
+                    {
+                        Idx = Convert.ToInt32(row["Idx"]),
+                        Sj = Convert.ToString(row["sj"]),
+                        WritngDe = Convert.ToDateTime(row["writngDe"]),
+                        Cn = Convert.ToString(row["cn"]),
+                        Ty3Date = Convert.ToString(row["ty3Date"]),
+                        Ty3Place = Convert.ToString(row["ty3Place"]),
+                        Ty3Kind = Convert.ToString(row["ty3Kind"]),
+                        Ty3Sex = Convert.ToString(row["ty3Sex"]),
+                        Ty3Process = Convert.ToString(row["ty3Process"]),
+                        Ty3Ingye = Convert.ToString(row["ty3Ingye"]),
+                        Ty3Insu = Convert.ToString(row["ty3Insu"]),
+                        Ty3Picture = Convert.ToString(row["ty3Picture"])
+                    });
+                }
+
+                this.DataContext = animalInfoDetail;
+                StsResult.Content = $"{animalInfoDetail.Count} 건 조회";
+            }
+            #endregion
+        }
+
+
+        // 처리현황
+        private void CboPrcs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (CboPrcs.SelectedValue != null)
+            {
+                using (MySqlConnection conn = new MySqlConnection(Commons.myConnString))
+                {
+                    conn.Open();
+                    var query = @"SELECT Idx,
+                                     Sj,
+                                     WritngDe,
+                                     Cn,
+                                     Ty3Date,
+                                     Ty3Place,
+                                     Ty3Kind,
+                                     Ty3Sex,
+                                     Ty3Process,
+                                     Ty3Ingye,
+                                     Ty3Insu,
+                                     Ty3Picture
+                                 FROM animalinfo
+                                 WHERE Ty3Process = @Ty3Process";
+
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@Ty3Process", CboPrcs.SelectedValue.ToString()); // 콤보박스에서 선택한 날짜 파라미터 넣기
+                    MySqlDataAdapter adapter = new MySqlDataAdapter(cmd);
+                    DataSet ds = new DataSet();
+                    adapter.Fill(ds, "aminamlInfoDetail");
+                    List<AminamlInfoDetail> aminamlInfoDetail = new List<AminamlInfoDetail>();
+
+                    foreach (DataRow row in ds.Tables["aminamlInfoDetail"].Rows)
+                    {
+                        aminamlInfoDetail.Add(new AminamlInfoDetail
+                        {
+                            Idx = Convert.ToInt32(row["Idx"]),
+                            Sj = Convert.ToString(row["sj"]),
+                            WritngDe = Convert.ToDateTime(row["writngDe"]),
+                            Cn = Convert.ToString(row["cn"]),
+                            Ty3Date = Convert.ToString(row["ty3Date"]),
+                            Ty3Place = Convert.ToString(row["ty3Place"]),
+                            Ty3Kind = Convert.ToString(row["ty3Kind"]),
+                            Ty3Sex = Convert.ToString(row["ty3Sex"]),
+                            Ty3Process = Convert.ToString(row["ty3Process"]),
+                            Ty3Ingye = Convert.ToString(row["ty3Ingye"]),
+                            Ty3Insu = Convert.ToString(row["ty3Insu"]),
+                            Ty3Picture = Convert.ToString(row["ty3Picture"])
+                        });
+                    }
+                    this.DataContext = aminamlInfoDetail;
+                    StsResult.Content = $"{CboPrcs.SelectedValue} {aminamlInfoDetail.Count}건 조회";
+
+
+                }
+            }
+            else
+            {
+                SelectDB();
+            }
+        }
     }
 }

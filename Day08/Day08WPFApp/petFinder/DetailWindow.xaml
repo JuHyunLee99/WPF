@@ -1,0 +1,80 @@
+﻿<mah:MetroWindow
+    x:Class="petFinder.DetailWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+        xmlns:local="clr-namespace:petFinder"
+        mc:Ignorable="d"
+        Title="구조 상세정보" Height="500" Width="700" FontFamily="NanuGothic"
+        Loaded="MetroWindow_Loaded" Closing="MetroWindow_Closing">
+    <Grid Margin="5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.5*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="1*"/>
+                <RowDefinition Height="2*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="3*"/>
+            </Grid.ColumnDefinitions>
+
+
+            <Label Grid.Row="1" Grid.Column="0" Content="작성일" FontSize="15" FontWeight="Bold" 
+                   Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Grid.Row="2" Grid.Column="0" Content="포획일시" FontSize="15" FontWeight="Bold" 
+                   Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Grid.Row="3" Grid.Column="0" Content="포획장소" FontSize="15" FontWeight="Bold" 
+                   Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Grid.Row="4" Grid.Column="0" Content="동물 종류" FontSize="15" FontWeight="Bold" 
+                   Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Grid.Row="5" Grid.Column="0" Content="성별" FontSize="15" FontWeight="Bold" 
+                   Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Grid.Row="6" Grid.Column="0" Content="처리 현황" FontSize="15" FontWeight="Bold" 
+                   Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Grid.Row="7" Grid.Column="0" Content="인계" FontSize="15" FontWeight="Bold" 
+                   Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Grid.Row="8" Grid.Column="0" Content="인수" FontSize="15" FontWeight="Bold" 
+                   Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Grid.Row="9" Grid.Column="0" Content="내용" FontSize="15" FontWeight="Bold" 
+                   Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+            <Label Grid.Row="1" Grid.Column="1" Content="{Binding WritngDe}" FontSize="15"  
+                   Margin="10,5" VerticalAlignment="Center"/>
+            <Label Grid.Row="2" Grid.Column="1" Content="{Binding Ty3Date}" FontSize="15" 
+                   Margin="10,5" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Ty3Place}" FontSize="15"  
+                   Margin="10,5" VerticalAlignment="Center"/>
+            <Label Grid.Row="4" Grid.Column="1" Content="{Binding Ty3Kind}" FontSize="15"  
+                   Margin="10,5" VerticalAlignment="Center"/>
+            <Label Grid.Row="5" Grid.Column="1" Content="{Binding Ty3Sex}" FontSize="15"  
+                   Margin="10,5" VerticalAlignment="Center"/>
+            <Label Grid.Row="6" Grid.Column="1" Content="{Binding Ty3Process}" FontSize="15"  
+                   Margin="10,5" VerticalAlignment="Center"/>
+            <Label Grid.Row="7" Grid.Column="1" Content="{Binding Ty3Ingye}" FontSize="15"  
+                   Margin="10,5" VerticalAlignment="Center"/>
+            <Label Grid.Row="8" Grid.Column="1" Content="{Binding Ty3Insu}" FontSize="15"  
+                   Margin="10,5" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="9" Grid.Column="1" Text="{Binding Cn}" FontSize="15"  
+                   Margin="10,5" VerticalAlignment="Center" TextWrapping="Wrap"/>
+        </Grid>
+            <Grid Grid.Column="1">
+            <Image x:Name="ImgPet" Margin="15,5" Source="No_Picture.png"/>
+        </Grid>
+    </Grid>
+</mah:MetroWindow>
