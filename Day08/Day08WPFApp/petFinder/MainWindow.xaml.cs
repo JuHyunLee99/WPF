@@ -24,7 +24,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-// 조회한거 사진기준으로 확인하고 삽입하기 해야함
+// db삽입 업데이트 다시하기
 namespace petFinder
 {
     /// <summary>
@@ -61,7 +61,7 @@ namespace petFinder
             }
         }
 
-        //  실시간 조회
+        //  실시간 조회 버튼
         private async void BtnReq_Click(object sender, RoutedEventArgs e)
         {
             string openApiUrl = "http://apis.data.go.kr/6260000/BusanPetAnimalInfoService/getPetAnimalInfo"; // URL
@@ -134,6 +134,7 @@ namespace petFinder
                 await Commons.ShowMessageAsync("오류", $"JSON 처리 오류 {ex.Message}");
 
             }
+
             #endregion
 
             #region < DB 연결 >
@@ -202,9 +203,67 @@ namespace petFinder
         }
 
         // 날짜 필터
-        private void PickDate_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
+        private async void PickDate_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (PickDate.SelectedDate != null)
+            {
+                using (MySqlConnection conn = new MySqlConnection(Commons.myConnString))
+                {
+                    conn.Open();
+                    var query = @"SELECT Idx,
+                                     Sj,
+                                     WritngDe,
+                                     Cn,
+                                     Ty3Date,
+                                     Ty3Place,
+                                     Ty3Kind,
+                                     Ty3Sex,
+                                     Ty3Process,
+                                     Ty3Ingye,
+                                     Ty3Insu,
+                                     Ty3Picture
+                                 FROM animalinfo
+                                 WHERE WritngDe = @WritngDe";
 
+                    MySqlCommand cmd = new MySqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@WritngDe", PickDate.SelectedDate.ToString()); // 콤보박스에서 선택한 날짜 파라미터 넣기
+                    MySqlDataAdapter adapter = new MySqlDataAdapter(cmd);
+                    DataSet ds = new DataSet();
+                    adapter.Fill(ds, "aminamlInfoDetail");
+                    List<AminamlInfoDetail> aminamlInfoDetail = new List<AminamlInfoDetail>();
+
+                    foreach (DataRow row in ds.Tables["aminamlInfoDetail"].Rows)
+                    {
+                        aminamlInfoDetail.Add(new AminamlInfoDetail
+                        {
+                            Idx = Convert.ToInt32(row["Idx"]),
+                            Sj = Convert.ToString(row["sj"]),
+                            WritngDe = Convert.ToDateTime(row["writngDe"]),
+                            Cn = Convert.ToString(row["cn"]),
+                            Ty3Date = Convert.ToString(row["ty3Date"]),
+                            Ty3Place = Convert.ToString(row["ty3Place"]),
+                            Ty3Kind = Convert.ToString(row["ty3Kind"]),
+                            Ty3Sex = Convert.ToString(row["ty3Sex"]),
+                            Ty3Process = Convert.ToString(row["ty3Process"]),
+                            Ty3Ingye = Convert.ToString(row["ty3Ingye"]),
+                            Ty3Insu = Convert.ToString(row["ty3Insu"]),
+                            Ty3Picture = Convert.ToString(row["ty3Picture"])
+                        });
+                    }
+                    this.DataContext = aminamlInfoDetail;
+                    if(aminamlInfoDetail.Count == 0)
+                    {
+                        await Commons.ShowMessageAsync("정보", "선택한 날짜에 구조 건수가 없습니다.");
+                    }
+                    StsResult.Content = $"{PickDate.SelectedDate} {aminamlInfoDetail.Count}건 조회";
+
+
+                }
+            }
+            else
+            {
+                SelectDB();
+            }
         }
 
         // 그리드 특정 ROW 더블클릭하면 새창에 반려동물 상세정보
@@ -228,7 +287,6 @@ namespace petFinder
         // db select 기본
         public void SelectDB()
         {
-
             #region < DB 조회>
             using (MySqlConnection conn = new MySqlConnection(Commons.myConnString))
             {
