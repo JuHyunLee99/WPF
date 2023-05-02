@@ -63,10 +63,6 @@ src="https://raw.githubusercontent.com/JuHyunLee99/WPF/main/Images/MovieFinder1.
 <img
 src="https://raw.githubusercontent.com/JuHyunLee99/WPF/main/Images/MovieFinder3.gif" width="700"/>
 
-미세먼지확인 앱 중간  
-<img
-src=""/>
-
 ## 9일차
 - WPF 응용
 	- 미세먼지확인 앱 완료
@@ -79,4 +75,4 @@ src=""/>
 
 미세먼지 확인 앱
 <img
-src=""/>
+src="https://github.com/JuHyunLee99/WPF/blob/main/Images/FindDust.mp4" width="700"/>
