@@ -25,6 +25,7 @@ Windows Presentation Foundation
 	- MVVM 패턴
 
 ## 5일차
+- WPF 응용
 	- MVVM 패턴
 	- MVVM framwork / Caliburn
 	- 데이터바인딩 DB연동
@@ -61,3 +62,21 @@ src="https://raw.githubusercontent.com/JuHyunLee99/WPF/main/Images/MovieFinder1.
 영화검색앱  
 <img
 src="https://raw.githubusercontent.com/JuHyunLee99/WPF/main/Images/MovieFinder3.gif" width="700"/>
+
+미세먼지확인 앱 중간  
+<img
+src=""/>
+
+## 9일차
+- WPF 응용
+	- 미세먼지확인 앱 완료
+	- 데이터포털 OpenAPI
+	- DB데이터바이딩(MySQL)
+- 개인 포트폴리오 개발
+	- 데이터포털 OpenAPI
+	- 네이버, 구글, 카카오 OpenAPI
+	- 기타 OpenAPI
+
+미세먼지 확인 앱
+<img
+src=""/>
