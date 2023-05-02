@@ -25,6 +25,7 @@ Windows Presentation Foundation
 	- MVVM 패턴
 
 ## 5일차
+- WPF 응용
 	- MVVM 패턴
 	- MVVM framwork / Caliburn
 	- 데이터바인딩 DB연동
