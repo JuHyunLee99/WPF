@@ -75,4 +75,4 @@ src="https://raw.githubusercontent.com/JuHyunLee99/WPF/main/Images/MovieFinder3.
 
 미세먼지 확인 앱
 <img
-src="https://github.com/JuHyunLee99/WPF/blob/main/Images/FindDust.mp4" width="700"/>
+src="https://github.com/JuHyunLee99/WPF/blob/main/Images/FindDust.gif" width="700"/>
