@@ -73,6 +73,6 @@ src="https://raw.githubusercontent.com/JuHyunLee99/WPF/main/Images/MovieFinder3.
 	- 네이버, 구글, 카카오 OpenAPI
 	- 기타 OpenAPI
 
-미세먼지 확인 앱
+미세먼지 확인 앱  
 <img
 src="https://github.com/JuHyunLee99/WPF/blob/main/Images/FindDust.gif" width="700"/>
