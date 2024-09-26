@@ -1,0 +1,23 @@
+﻿<Window x:Class="Helix01_First.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Helix01_First.Views"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <ListView Grid.Row="0" ItemsSource="{Binding Head}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="X" DisplayMemberBinding="{Binding X}" Width="80"/>
+                    <GridViewColumn Header="Y" DisplayMemberBinding="{Binding Y}" Width="80"/>
+                    <GridViewColumn Header="Z" DisplayMemberBinding="{Binding Z}" Width="80"/>
+                    <GridViewColumn Header="TX" DisplayMemberBinding="{Binding TX}" Width="80"/>
+                    <GridViewColumn Header="TY" DisplayMemberBinding="{Binding TY}" Width="80"/>
+                    <GridViewColumn Header="TZ" DisplayMemberBinding="{Binding TZ}" Width="80"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</Window>

@@ -1,0 +1,10 @@
+﻿<Application x:Class="Helix01_First.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Helix01_First"
+             Startup="Application_Startup">
+             
+    <Application.Resources>
+         
+    </Application.Resources>
+</Application>
